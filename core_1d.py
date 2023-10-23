@@ -14,24 +14,26 @@ def u(x,t):
 
 
 
-train_til_time = 5
+train_til_time = 30
 num_heat_points = 161
 
 x = torch.linspace(0,80,num_heat_points) #change back to 161 later
 
 
-output = torch.tensor([])
-t_train = torch.tensor([])
-
+train_output = torch.tensor([])
+train_input = torch.tensor([])
+final_input = torch.tensor([])
 for t in range(train_til_time):
-    t_train = torch.cat((t_train, torch.tensor([t])),dim=0)
-    out = torch.tensor(u(x,t))
-    out = out.view(1,num_heat_points)
-    output = torch.cat((output,out),dim=0)
+    
 
-print(t_train)
+    train_input = torch.cat((torch.tensor([t]),x),dim=0)
+    train_input = train_input.view(1,num_heat_points + 1)
+    final_input = torch.cat((final_input,train_input),dim=0)
 
-print(output)
+
+    train_output = torch.cat((train_output,u(x,t).view(1,num_heat_points)))
+
+print(train_output.shape)
 
 
 
