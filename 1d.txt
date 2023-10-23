@@ -1,0 +1,8 @@
+Background info for the 1d heat equation example
+
+Boundary Conditions: 0 degrees at each end of bar (bar is insulated around middle)
+
+1d copper bar: density density(rho) = 8.92 g/cm^3, specific heat(sigma) = 0.092 cal/gram degrees celcius, thermal conductivity(K) = .95 cal/cm sec degree celcius
+
+
+
