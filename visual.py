@@ -1,21 +1,8 @@
-import numpy as np
+from core_1d import rho, sigma, K, L, c
+from core_1d import lam, u
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from matplotlib import style
 import torch
-
-print(19, flush=True)
-rho = 8.92
-sigma = .092
-K = .95
-L = 80
-c = (K/(sigma*rho))**.5
-
-def lam(n):
-    return c * n * torch.pi / L
-
-def u(x,t):
-    return 100 * torch.e**(-lam(1)**2*t) * torch.sin((torch.pi/L)*x)
 
 
 
