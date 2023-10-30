@@ -21,6 +21,8 @@ class Net_1d(nn.Module):
         out = self.act(out)
         out = self.l_2(out)
         out = self.act(out)
+        out = self.l_2(out)
+        out = self.act(out)
         out = self.l_3(out)
 
         return out
@@ -35,8 +37,11 @@ net = Net_1d(2,1,128)
 
 loss_func = nn.MSELoss()
 optimizer = torch.optim.Adam(net.parameters(),lr=.01)
+print(core_1d.train_output.shape)
 
-for val in range(len(core_1d.train_output)):
+# for val in range(len(core_1d.train_output)):
+for _ in range(2000):
+
 
     # yhat_phys = net(p_train_in)
     # du = torch.autograd.grad(yhat_phys,core_1d.train_input,torch.ones_like(yhat_phys),create_graph=True)[0]
@@ -47,18 +52,18 @@ for val in range(len(core_1d.train_output)):
     # phys_loss = torch.mean(phys_res**2)
 
 
-    outputs = net(core_1d.train_input[val])
+    outputs = net(core_1d.train_input)
     # print(core_1d.train_input[val])
     # print(core_1d.train_output[val])
 
-    loss = loss_func(outputs,core_1d.train_output[val])# + phys_loss
-    print(loss)
+    loss = loss_func(outputs,core_1d.train_output)# + phys_loss
+    #print(loss)
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
 
+print(net(torch.tensor([[30.,2],[40,3]])))
 
 
-
-# plt.plot(torch.linspace(0,80,161).detach().numpy(),net(torch.tensor([800.])).detach().numpy())
-# plt.show()
+plt.plot(torch.linspace(0,80,81).detach().numpy(),net(core_1d.train_input[:81]).detach().numpy())
+plt.show()
