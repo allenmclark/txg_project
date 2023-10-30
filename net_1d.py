@@ -39,8 +39,10 @@ loss_func = nn.MSELoss()
 optimizer = torch.optim.Adam(net.parameters(),lr=.01)
 print(core_1d.train_output.shape)
 
+core_1d.train_input = torch.reshape(core_1d.train_input,(16200,2))
+
 # for val in range(len(core_1d.train_output)):
-for _ in range(2000):
+for _ in range(5000):
 
 
     # yhat_phys = net(p_train_in)
@@ -62,8 +64,10 @@ for _ in range(2000):
     loss.backward()
     optimizer.step()
 
-print(net(torch.tensor([[30.,2],[40,3]])))
+core_1d.train_input = torch.reshape(core_1d.train_input,(core_1d.data_range,81,2))
+print(core_1d.train_input)
+print(net(core_1d.train_input[0]))
 
 
-plt.plot(torch.linspace(0,80,81).detach().numpy(),net(core_1d.train_input[:81]).detach().numpy())
-plt.show()
+# plt.plot(torch.linspace(0,80,81).detach().numpy(),net(core_1d.train_input[:81]).detach().numpy())
+# plt.show()
