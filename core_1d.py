@@ -17,7 +17,7 @@ def u(x,t):
 print(u(torch.tensor([30,40]),torch.tensor([[2,3]])))
 
 # how many seconds the data is trained for
-data_range = 5
+data_range = 200
 
 # how many points along the 1d bar are sampled for training
 num_heat_points = 81
@@ -31,11 +31,11 @@ train_output = torch.tensor([])
 
 for t in range(data_range):
     for x_pos in x:
-        train_input = torch.cat((train_input,torch.tensor([[x_pos,t]])))
-                                
-        #train_output = torch.cat((train_output,u(x,t).view(1,num_heat_points)))
+
+        train_input = torch.cat((train_input,torch.tensor([[x_pos,t]])))            
         train_output = torch.cat((train_output,torch.tensor([[u(x_pos,t)]])))
 
+train_input = torch.reshape(train_input,(data_range,81,2))
 
 print('input',train_input.shape)
 print('output',train_output.shape)
