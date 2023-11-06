@@ -33,7 +33,7 @@ for t in range(data_range):
     for x_pos in x:
 
         train_input = torch.cat((train_input,torch.tensor([[x_pos,t]])))            
-        train_output = torch.cat((train_output,torch.tensor([[u(x_pos,t)]])))
+        train_output = torch.cat((train_output,torch.tensor([[u(x_pos,t)]]))).requires_grad_(True)
 
 train_input = torch.reshape(train_input,(data_range,81,2))
 
