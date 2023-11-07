@@ -14,8 +14,6 @@ def lam(n):
 def u(x,t):
     return 100 * torch.e**(-lam(1)**2*t) * torch.sin((torch.pi/L)*x)
 
-print(u(torch.tensor([30,40]),torch.tensor([[2,3]])))
-
 # how many seconds the data is trained for
 data_range = 200
 
