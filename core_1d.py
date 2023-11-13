@@ -15,10 +15,10 @@ def u(x,t):
     return 100 * torch.e**(-lam(1)**2*t) * torch.sin((torch.pi/L)*x)
 
 # how many seconds the data is trained for
-data_range = 200
+data_range = 10
 
 # how many points along the 1d bar are sampled for training
-num_heat_points = 81
+num_heat_points = 15
 
 #tensor of all the points sampled for heat training 
 x = torch.linspace(0,80,num_heat_points)
@@ -33,7 +33,7 @@ for t in range(data_range):
         train_input = torch.cat((train_input,torch.tensor([[x_pos,t]])))            
         train_output = torch.cat((train_output,torch.tensor([[u(x_pos,t)]]))).requires_grad_(True)
 
-train_input = torch.reshape(train_input,(data_range,81,2))
+train_input = torch.reshape(train_input,(data_range,num_heat_points,2))
 
 print('input',train_input.shape)
 print('output',train_output.shape)

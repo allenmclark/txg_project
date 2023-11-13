@@ -1,5 +1,5 @@
 from core_1d import rho, sigma, K, L, c
-from core_1d import lam, u
+from core_1d import lam, u, num_heat_points, data_range
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import torch
@@ -9,7 +9,7 @@ import core_1d
 
 fig, ax = plt.subplots()
 ax.set_xlim(0,100)
-ax.set_ylim(-20,20)
+ax.set_ylim(-10,10)
 
 line1, = ax.plot([],[],color='orange',lw=2,label='analytical solution')
 line2, = ax.plot([],[],color='blue',lw=2, label='neural network solution')
@@ -32,7 +32,7 @@ def init():
 def update(frame):
 
 
-    x = torch.linspace(0,L,81)
+    x = torch.linspace(0,L,num_heat_points)
     y1 = u(x,frame)
     y1 = y1.detach().numpy()
     line1.set_data(x,y1)
@@ -58,5 +58,5 @@ def update(frame):
 
 
                                 #correct frames to core_1d.data_range
-ani = FuncAnimation(fig, update, frames = core_1d.data_range, blit=True, interval=1)
+ani = FuncAnimation(fig, update, frames = data_range, blit=True, interval=100,repeat_delay=100)
 plt.show()
