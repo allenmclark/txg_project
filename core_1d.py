@@ -35,19 +35,10 @@ for t in range(data_range):
 
 train_input = torch.reshape(train_input,(data_range,num_heat_points,2))
 
-print('input',train_input.shape)
-print('output',train_output.shape)
 
 time = torch.tensor([])
 position = torch.tensor([[]])
 
-# for val in train_input:
-#     position = torch.cat((position,torch.tensor([[val[0]]])))
-#     time = torch.cat((time,torch.tensor([val[1]])))
-
-
-# print('time',time[:4])
-# print('position',position)
 
 
 
