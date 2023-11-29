@@ -15,7 +15,7 @@ def u(x,t):
     return 100 * torch.e**(-lam(1)**2*t) * torch.sin((torch.pi/L)*x)
 
 # how many seconds the data is trained for
-data_range = 500
+data_range = 300
 
 # how many points along the 1d bar are sampled for training
 num_heat_points = 15

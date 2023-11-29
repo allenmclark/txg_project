@@ -6,7 +6,8 @@ import torch
 from net_1d import net, x_deriv, true_x_deriv, true_deriv2
 import core_1d
 
-sample_line = core_1d.u(torch.tensor([40]),torch.tensor(data_range)).detach()
+#todo refactor 50 to some variable from training sample and add comment
+sample_line = core_1d.u(torch.tensor([40]),torch.tensor(50)).detach()
 
 
 fig, ax = plt.subplots()

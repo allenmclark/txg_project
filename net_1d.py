@@ -5,7 +5,7 @@ from core_1d import data_range, num_heat_points
 import matplotlib.pyplot as plt
 
 alpha = core_1d.K / (core_1d.rho*core_1d.sigma)
-print(alpha)
+
 
 class Net_1d(nn.Module):
     'build mlp for ld heat solution'
@@ -43,9 +43,10 @@ optimizer = torch.optim.Adam(net.parameters(),lr=.001)
 
 core_1d.train_input = torch.reshape(core_1d.train_input,(data_range*num_heat_points,2)).requires_grad_(True)
 
-sample = data_range*num_heat_points
+#constant is number of seconds of training data
+sample = 10 * num_heat_points
 
-for _ in range(50):
+for _ in range(800):
 
 
     outputs = net(core_1d.train_input)
@@ -57,7 +58,7 @@ for _ in range(50):
     true_deriv2 = torch.autograd.grad(true_deriv[:,0].sum(), core_1d.train_input,create_graph=True,allow_unused=True)[0]
 
 
-    #test with solution derivs
+    #test with solution derivs                                50 is physics loss strength
     physics_loss = torch.mean((alpha * deriv_2[:,0] - deriv[:,1])**2) * 50
     
 
