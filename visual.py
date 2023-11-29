@@ -6,16 +6,19 @@ import torch
 from net_1d import net, x_deriv, true_x_deriv, true_deriv2
 import core_1d
 
+sample_line = core_1d.u(torch.tensor([40]),torch.tensor(data_range)).detach()
+
 
 fig, ax = plt.subplots()
 ax.set_xlim(0,100)
-ax.set_ylim(-10,10)
+ax.set_ylim(-5,100)
 
 line1, = ax.plot([],[],color='orange',lw=2,label='analytical solution')
 line2, = ax.plot([],[],color='blue',lw=2, label='neural network solution')
 line3, = ax.plot([],[],color='green',lw=2, label='du/dx of network')
 line4, = ax.plot([],[],color='black',lw=2,label='du/dx of analytical solution')
 line5, = ax.plot([],[],color='red',lw=2,label='d2u/dx of analytical solution')
+line6, = ax.plot([],[],color='purple')
 
 ax.legend(loc='lower right')
 
@@ -25,6 +28,7 @@ def init():
     line3.set_data([],[])
     line4.set_data([],[])
     line5.set_data([],[])
+    line6.set_data([],[])
     return line1,line2
 
 
@@ -52,6 +56,9 @@ def update(frame):
     y5 = true_deriv2[frame]
     y5 = y5.detach().numpy()
     line5.set_data(x,y5)
+
+    y6 = 50
+    line6.set_data([0,80],[sample_line,sample_line])
 
 
     return line1,line2,line3,line4,line5
