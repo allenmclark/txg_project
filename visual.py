@@ -66,5 +66,5 @@ def update(frame):
 
 
                                 #correct frames to core_1d.data_range
-ani = FuncAnimation(fig, update, frames = data_range, blit=True, interval=100,repeat_delay=100)
+ani = FuncAnimation(fig, update, frames = data_range, blit=True, interval=20,repeat_delay=100)
 plt.show()

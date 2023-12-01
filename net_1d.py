@@ -33,9 +33,6 @@ class Net_1d(nn.Module):
 #physics training set
 p_train_in = core_1d.train_input
 
-
-
-
 net = Net_1d(2,1,36)
 
 loss_func = nn.MSELoss()
@@ -43,35 +40,50 @@ optimizer = torch.optim.Adam(net.parameters(),lr=.001)
 
 core_1d.train_input = torch.reshape(core_1d.train_input,(data_range*num_heat_points,2)).requires_grad_(True)
 
+bound_tensor = torch.tensor([])
+for val in range(10):
+    for num in [0,80]:
+        bound_tensor = torch.cat((bound_tensor,torch.tensor([[num,val]])))
+
 #constant is number of seconds of training data
 sample = 10 * num_heat_points
 
-for _ in range(800):
+for _ in range(15000):
+    
+    outputs = net(core_1d.phys_train_input)
+
+    deriv = torch.autograd.grad(outputs.sum(),core_1d.phys_train_input,create_graph=True,allow_unused=True)[0]
+    deriv_2 = torch.autograd.grad(deriv[:,0].sum(),core_1d.phys_train_input,create_graph=True,allow_unused=True)[0]
+
+    true_deriv = torch.autograd.grad(core_1d.u(core_1d.phys_train_input[:,0],core_1d.train_input[:,1]).sum(), core_1d.train_input,create_graph=True,allow_unused=True)[0]
+    true_deriv2 = torch.autograd.grad(true_deriv[:,0].sum(), core_1d.phys_train_input,create_graph=True,allow_unused=True)[0]
 
 
-    outputs = net(core_1d.train_input)
-
-    deriv = torch.autograd.grad(outputs.sum(),core_1d.train_input,create_graph=True,allow_unused=True)[0]
-    deriv_2 = torch.autograd.grad(deriv[:,0].sum(),core_1d.train_input,create_graph=True,allow_unused=True)[0]
-
-    true_deriv = torch.autograd.grad(core_1d.u(core_1d.train_input[:,0],core_1d.train_input[:,1]).sum(), core_1d.train_input,create_graph=True,allow_unused=True)[0]
-    true_deriv2 = torch.autograd.grad(true_deriv[:,0].sum(), core_1d.train_input,create_graph=True,allow_unused=True)[0]
-
-
-    #test with solution derivs                                50 is physics loss strength
-    physics_loss = torch.mean((alpha * deriv_2[:,0] - deriv[:,1])**2) * 50
+    #test with solution derivs
+    physics_loss = torch.mean((alpha * deriv_2[:,0] - deriv[:,1])**2)* .0001
+    
+    boundary_loss = torch.mean(net(bound_tensor)**2)*50
     
 
 
     #rename training loss and change 150s to variables
     training_loss = (outputs[0:sample] - core_1d.train_output[0:sample]).flatten()
     training_loss = torch.cat((training_loss,torch.zeros(data_range*num_heat_points-sample)),0)
-    training_loss = torch.mean((outputs - core_1d.train_output)**2)
+    training_loss = torch.mean((outputs - core_1d.train_output)**2)*10
+    
 
-    loss = training_loss + physics_loss
+    loss = training_loss + physics_loss + boundary_loss
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
+
+
+    if _ % 200 == 0:
+        print(_)
+        model_output = net(core_1d.train_input).reshape(data_range*num_heat_points)
+        real_output = core_1d.u(core_1d.train_input.unbind(dim=1)[0],core_1d.train_input.unbind(dim=1)[1])
+        accuracy = 1 - ((model_output-real_output).sum()/real_output.sum()).abs()
+        print('accuracy',accuracy)
 
 # print('model output',net(torch.tensor([40.,5.])))
 # plt.plot((alpha * deriv_2[:,0]).detach(),color='black') 
