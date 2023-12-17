@@ -5,7 +5,7 @@ from core_1d import data_range, num_heat_points
 import matplotlib.pyplot as plt
 
 alpha = core_1d.K / (core_1d.rho*core_1d.sigma)
-
+print('refactor branch')
 
 class Net_1d(nn.Module):
     'build mlp for ld heat solution'
