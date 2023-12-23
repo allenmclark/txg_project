@@ -1,11 +1,10 @@
 import torch
 import torch.nn as nn
 import core_1d
-from core_1d import data_range, num_heat_points
+from core_1d import data_range, num_heat_points, train_input, train_output
 import matplotlib.pyplot as plt
 
 alpha = core_1d.K / (core_1d.rho*core_1d.sigma)
-print('refactor branch')
 
 class Net_1d(nn.Module):
     'build mlp for ld heat solution'
@@ -38,57 +37,74 @@ net = Net_1d(2,1,36)
 loss_func = nn.MSELoss()
 optimizer = torch.optim.Adam(net.parameters(),lr=.001)
 
-core_1d.train_input = torch.reshape(core_1d.train_input,(data_range*num_heat_points,2)).requires_grad_(True)
+train_input = torch.reshape(train_input,(data_range*num_heat_points,2)).requires_grad_(True)
 
-bound_tensor = torch.tensor([])
-for val in range(10):
-    for num in [0,80]:
-        bound_tensor = torch.cat((bound_tensor,torch.tensor([[num,val]])))
+# bound_tensor = torch.tensor([])
+# for val in range(10):
+#     for num in [0,80]:
+#         bound_tensor = torch.cat((bound_tensor,torch.tensor([[num,val]])))
 
 #constant is number of seconds of training data
-sample = 10 * num_heat_points
+sample = 40 * num_heat_points
+iterations = 500
+data = train_input
+accuracy_list = []
+physloss_list = []
 
-for _ in range(15000):
+for _ in range(iterations):
     
-    outputs = net(core_1d.phys_train_input)
+    outputs = net(data)
 
-    deriv = torch.autograd.grad(outputs.sum(),core_1d.phys_train_input,create_graph=True,allow_unused=True)[0]
-    deriv_2 = torch.autograd.grad(deriv[:,0].sum(),core_1d.phys_train_input,create_graph=True,allow_unused=True)[0]
+    deriv = torch.autograd.grad(outputs.sum(), data,create_graph=True, allow_unused=True)[0]
+    deriv_2 = torch.autograd.grad(deriv[:,0].sum(), data, create_graph=True, allow_unused=True)[0]
 
-    true_deriv = torch.autograd.grad(core_1d.u(core_1d.phys_train_input[:,0],core_1d.train_input[:,1]).sum(), core_1d.train_input,create_graph=True,allow_unused=True)[0]
-    true_deriv2 = torch.autograd.grad(true_deriv[:,0].sum(), core_1d.phys_train_input,create_graph=True,allow_unused=True)[0]
+    true_deriv = torch.autograd.grad(core_1d.u(data[:,0], data[:,1]).sum(), data, create_graph=True,allow_unused=True)[0]
+    true_deriv2 = torch.autograd.grad(true_deriv[:,0].sum(), data, create_graph=True, allow_unused=True)[0]
 
 
     #test with solution derivs
-    physics_loss = torch.mean((alpha * deriv_2[:,0] - deriv[:,1])**2)* .0001
-    
-    boundary_loss = torch.mean(net(bound_tensor)**2)*50
+    physics_loss = torch.mean((alpha * deriv_2[:,0] - deriv[:,1])**2)
+    physloss_list.append(physics_loss.detach())
+    # boundary_loss = torch.mean(net(bound_tensor)**2)*50
     
 
 
     #rename training loss and change 150s to variables
-    training_loss = (outputs[0:sample] - core_1d.train_output[0:sample]).flatten()
+    training_loss = (outputs[0:sample] - train_output[0:sample]).flatten()
     training_loss = torch.cat((training_loss,torch.zeros(data_range*num_heat_points-sample)),0)
-    training_loss = torch.mean((outputs - core_1d.train_output)**2)*10
+    training_loss = torch.mean((outputs - train_output)**2)
     
 
-    loss = training_loss + physics_loss + boundary_loss
+    loss = training_loss + physics_loss * 100 # + boundary_loss
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
 
 
+
+    model_output = net(data).reshape(data_range*num_heat_points)
+    real_output = core_1d.u(data.unbind(dim=1)[0], data.unbind(dim=1)[1])
+    accuracy = 1 - ((model_output-real_output).sum()/real_output.sum()).abs()
+    
+
+    accuracy_list.append(accuracy.detach())
+    
+        
     if _ % 200 == 0:
-        print(_)
-        model_output = net(core_1d.train_input).reshape(data_range*num_heat_points)
-        real_output = core_1d.u(core_1d.train_input.unbind(dim=1)[0],core_1d.train_input.unbind(dim=1)[1])
-        accuracy = 1 - ((model_output-real_output).sum()/real_output.sum()).abs()
         print('accuracy',accuracy)
 
-# print('model output',net(torch.tensor([40.,5.])))
-# plt.plot((alpha * deriv_2[:,0]).detach(),color='black') 
-# plt.plot(deriv[:,1].detach())
-# plt.show()
+    
+
+print(accuracy_list)
+plt.plot(accuracy_list,color='black')
+plt.show()
+plt.plot(physloss_list,color='red')
+plt.show()
+
+
+
+
+
 print(deriv_2[:,0] - true_deriv2[:,0])
 print((deriv_2[:,0] - true_deriv2[:,0])**2)
 print(((deriv_2[:,0] - true_deriv2[:,0])**2).sum())
@@ -108,8 +124,8 @@ t_deriv = t_deriv.reshape(data_range,num_heat_points,1)
 
 
 
-true_deriv = torch.autograd.grad(core_1d.u(core_1d.train_input[:,0],core_1d.train_input[:,1]).sum(), core_1d.train_input,create_graph=True,allow_unused=True)[0]
-true_deriv2 = torch.autograd.grad(true_deriv[:,0].sum(), core_1d.train_input,create_graph=True,allow_unused=True)[0]
+true_deriv = torch.autograd.grad(core_1d.u(data[:,0],data[:,1]).sum(), data,create_graph=True,allow_unused=True)[0]
+true_deriv2 = torch.autograd.grad(true_deriv[:,0].sum(), data,create_graph=True,allow_unused=True)[0]
 
 
 # plt.plot((alpha * true_deriv2[:,0]).detach(),color='black') 
@@ -136,8 +152,8 @@ print('diff sum',diffeq.sum())
 
 
 # model accuracy
-model_output = net(core_1d.train_input).reshape(data_range*num_heat_points)
-real_output = core_1d.u(core_1d.train_input.unbind(dim=1)[0],core_1d.train_input.unbind(dim=1)[1])
+model_output = net(data).reshape(data_range*num_heat_points)
+real_output = core_1d.u(data.unbind(dim=1)[0],data.unbind(dim=1)[1])
 accuracy = 1 - ((model_output-real_output).sum()/real_output.sum()).abs()
 print('accuracy',accuracy)
 
@@ -148,6 +164,14 @@ print('accuracy',accuracy)
 
 
 
+
+
+
 #reshape for visualization
-core_1d.train_input = torch.reshape(core_1d.train_input,(data_range,num_heat_points,2))
+#core_1d.train_input = torch.reshape(data,(data_range,num_heat_points,2))
+
+
+
+
+
 

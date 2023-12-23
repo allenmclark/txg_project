@@ -24,8 +24,10 @@ num_heat_points = 20
 x = torch.linspace(0,80,num_heat_points)
 
 # create tensor of temps for half of bar and zeros for other half
-phys_x = x[:int(num_heat_points/2)]
-phys_x = torch.cat((phys_x,torch.zeros(int(num_heat_points/2))))
+heat_points_omitted = 0
+phys_x = x[:int(heat_points_omitted)]
+phys_x = torch.cat((phys_x,torch.zeros(int(heat_points_omitted))))
+
 
 # initialiazed 1d tensors for building our input and output datasets 
 train_input = torch.tensor([])
