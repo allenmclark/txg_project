@@ -6,7 +6,6 @@ K = .95
 L = 80
 c = (K/(sigma*rho))**.5
 
-
 def lam(n):
     return c * n * torch.pi / L
 
@@ -14,41 +13,29 @@ def lam(n):
 def u(x,t):
     return 100 * torch.e**(-lam(1)**2*t) * torch.sin((torch.pi/L)*x)
 
-# how many seconds the model is trained for
-data_range = 300
-
-# how many points along the 1d bar are sampled for training
+# data_range = time points and num_heat_points = heat points on bar
+time_range = 10
 num_heat_points = 20
 
-#tensor of all the points sampled for heat training 
-x = torch.linspace(0,80,num_heat_points)
-
-# create tensor of temps for half of bar and zeros for other half
-heat_points_omitted = 0
-phys_x = x[:int(heat_points_omitted)]
-phys_x = torch.cat((phys_x,torch.zeros(int(heat_points_omitted))))
-
-
-# initialiazed 1d tensors for building our input and output datasets 
-train_input = torch.tensor([])
-train_output = torch.tensor([])
-phys_train_input = torch.tensor([],requires_grad=True)
-phys_train_output = torch.tensor([], requires_grad=True)
-
-for t in range(data_range):
-    for x_pos in x:
-        train_input = torch.cat((train_input,torch.tensor([[x_pos,t]])))            
-        train_output = torch.cat((train_output,torch.tensor([[u(x_pos,t)]]))).requires_grad_(True)
-    for pos in phys_x:
-        phys_train_input = torch.cat((phys_train_input,torch.tensor([[pos,t]]))) 
-        phys_train_output = torch.cat((phys_train_output,torch.tensor([[u(pos,t)]]))).requires_grad_(True)
-
-
-train_input = torch.reshape(train_input,(data_range,num_heat_points,2))
+# same as above but for phys loss (more points)
+phys_time_range = 100
+phys_num_heat_points = 41
 
 
 
+# returns tuple of input and output
+def make_data(time_range, num_heat_points, bar_length = 80):
+    x = torch.linspace(0, bar_length, num_heat_points,requires_grad=True)
+    train_input = torch.arange(0,time_range,1)
+    train_input = train_input.repeat_interleave(num_heat_points)
+    x = x.repeat(time_range)
+    output = u(x,train_input).view(num_heat_points*time_range,1).requires_grad_(True)
+    input = torch.stack((x,train_input),dim=1)
+
+    return input, output
+    
 
 
-
+train_input, train_output = make_data(time_range, num_heat_points)
+phys_input = make_data(phys_time_range, phys_num_heat_points)[0]
 

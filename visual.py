@@ -1,13 +1,16 @@
 from core_1d import rho, sigma, K, L, c
-from core_1d import lam, u, num_heat_points, data_range
+from core_1d import lam, u, num_heat_points, time_range, phys_num_heat_points, phys_time_range, phys_input
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import torch
 from net_1d import net, x_deriv, true_x_deriv, true_deriv2
 import core_1d
 
+phys_input = torch.reshape(phys_input, (phys_time_range, phys_num_heat_points, 2))
+
+
 #todo refactor 50 to some variable from training sample and add comment
-sample_line = core_1d.u(torch.tensor([40]),torch.tensor(data_range)).detach()
+sample_line = core_1d.u(torch.tensor([40]),torch.tensor(time_range)).detach()
 
 
 fig, ax = plt.subplots()
@@ -42,21 +45,22 @@ def update(frame):
     y1 = y1.detach().numpy()
     line1.set_data(x,y1)
 
-    y2 = net(core_1d.train_input[frame])
+    phys_x = torch.linspace(0,L, phys_num_heat_points)
+    y2 = net(phys_input[frame])
     y2 = y2.detach().numpy()
-    line2.set_data(x,y2)
+    line2.set_data(phys_x,y2)
 
-    y3 = x_deriv[frame]
-    y3 = y3.detach().numpy()
-    line3.set_data(x,y3)
+    # y3 = x_deriv[frame]
+    # y3 = y3.detach().numpy()
+    # line3.set_data(x,y3)
 
-    y4 = true_x_deriv[frame]
-    y4 = y4.detach().numpy()
-    line4.set_data(x,y4)
+    # y4 = true_x_deriv[frame]
+    # y4 = y4.detach().numpy()
+    # line4.set_data(x,y4)
 
-    y5 = true_deriv2[frame]
-    y5 = y5.detach().numpy()
-    line5.set_data(x,y5)
+    # y5 = true_deriv2[frame]
+    # y5 = y5.detach().numpy()
+    # line5.set_data(x,y5)
 
     y6 = 50
     line6.set_data([0,80],[sample_line,sample_line])
@@ -66,5 +70,5 @@ def update(frame):
 
 
                                 #correct frames to core_1d.data_range
-ani = FuncAnimation(fig, update, frames = data_range, blit=True, interval=20,repeat_delay=100)
+ani = FuncAnimation(fig, update, frames = phys_time_range, blit=True, interval=20,repeat_delay=100)
 plt.show()
