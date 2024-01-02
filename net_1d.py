@@ -4,6 +4,8 @@ import core_1d
 from core_1d import time_range, num_heat_points, train_input, train_output, phys_input, phys_time_range, phys_num_heat_points
 import matplotlib.pyplot as plt
 
+PINN = input('Run as a Pinn? type y for yes and n for no\n\n') == 'y'
+
 alpha = core_1d.K / (core_1d.rho*core_1d.sigma)
 
 class Net_1d(nn.Module):
@@ -71,8 +73,10 @@ for _ in range(iterations):
 
     training_loss = torch.mean((data_outputs - train_output)**2)
     
-
-    loss = training_loss# + physics_loss * 1000 + boundary_loss * 350
+    if PINN == True:
+        loss = training_loss + physics_loss * 1000 + boundary_loss * 350
+    else:
+        loss = training_loss
     optimizer.zero_grad()
     loss.backward(retain_graph=True)
     optimizer.step()
