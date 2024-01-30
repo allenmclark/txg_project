@@ -46,7 +46,7 @@ for val in range(10):
         bound_tensor = torch.cat((bound_tensor,torch.tensor([[num,val]])))
 
 #constant is number of seconds of training data
-iterations = 10_000
+iterations = 25_000
 data = train_input
 accuracy_list = []
 physloss_list = []
@@ -74,7 +74,7 @@ for _ in range(iterations):
     training_loss = torch.mean((data_outputs - train_output)**2)
     
     if PINN == True:
-        loss = training_loss + physics_loss * 1000 + boundary_loss * 350
+        loss = training_loss + physics_loss * 100 + boundary_loss * 350
     else:
         loss = training_loss
     optimizer.zero_grad()
